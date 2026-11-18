@@ -1,5 +1,8 @@
-## What changed
+# Summary
 
-## How it was verified
+Describe the behavior this pull request changes and why.
 
-Include test results. For hardware changes, include the keyboard model, macOS version, and USB behavior you observed.
+## Verification
+
+List the checks you ran and their results. For hardware changes, include
+the keyboard model, macOS version, and the USB behavior you observed.
