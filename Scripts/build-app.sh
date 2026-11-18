@@ -10,8 +10,12 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 root="$PWD"
 dist="$root/dist"
 
-swift build -c release --product K70Studio
-bin="$(swift build -c release --show-bin-path)/K70Studio"
+build_options=(-c release)
+if [[ -n "${K70_BUILD_ARCH:-}" ]]; then
+    build_options+=(--arch "$K70_BUILD_ARCH")
+fi
+swift build "${build_options[@]}" --product K70Studio
+bin="$(swift build "${build_options[@]}" --show-bin-path)/K70Studio"
 mkdir -p "$dist"
 stage="$(mktemp -d "$dist/.build-app.XXXXXX")"
 trap 'rm -rf -- "$stage"' EXIT

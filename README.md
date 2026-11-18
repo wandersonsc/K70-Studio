@@ -63,8 +63,9 @@ the board stays in software lighting mode after a forced quit.
 
 Open `Package.swift` in Xcode. Run `swift test` to check the key layout,
 color and effect behavior, profile serialization, and USB report bytes.
-The core tests also run on Linux. GitHub Actions builds and tests both Mac
-architectures. [Contribution guide](CONTRIBUTING.md)
+The core tests also run on Linux. GitHub Actions runs the tests on Intel
+macOS and builds the app for both Mac architectures.
+[Contribution guide](CONTRIBUTING.md)
 
 `K70Core` renders lighting and encodes Corsair NXP reports. The app opens the
 vendor HID lighting interface through IOKit in shared mode and leaves input

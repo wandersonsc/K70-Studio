@@ -15,17 +15,13 @@ concurrency:
 
 jobs:
   build:
-    name: Build and test (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
+    name: Build (${{ matrix.arch }})
+    runs-on: macos-15-intel
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: macos-15
-            arch: arm64
-          - runner: macos-15-intel
-            arch: x86_64
+        arch: [arm64, x86_64]
 
     steps:
       - name: Check out source
@@ -34,15 +30,16 @@ jobs:
           persist-credentials: false
 
       - name: Test lighting and protocol
+        if: matrix.arch == 'x86_64'
         run: swift test
 
       - name: Build and archive app
         env:
-          EXPECTED_ARCH: ${{ matrix.arch }}
+          K70_BUILD_ARCH: ${{ matrix.arch }}
         run: |
           ./Scripts/build-app.sh
-          lipo 'dist/K70 Studio.app/Contents/MacOS/K70Studio' -verify_arch "$EXPECTED_ARCH"
-          ditto -c -k --keepParent 'dist/K70 Studio.app' "dist/K70-Studio-macOS-$EXPECTED_ARCH.zip"
+          lipo 'dist/K70 Studio.app/Contents/MacOS/K70Studio' -verify_arch "$K70_BUILD_ARCH"
+          ditto -c -k --keepParent 'dist/K70 Studio.app' "dist/K70-Studio-macOS-$K70_BUILD_ARCH.zip"
 
       - name: Upload app
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
