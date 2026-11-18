@@ -46,7 +46,7 @@ struct StudioView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text("K70 Studio")
                     .font(.system(size: 23, weight: .semibold))
-                Text("K70 RGB MK.2 Low Profile RAPIDFIRE")
+                Text("K70 RGB MK.2")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -328,7 +328,7 @@ struct StudioView: View {
         case .preview: "You can edit and save lighting in preview mode."
         case .disconnected: "Plug in the keyboard’s USB connector to apply lighting."
         case .lightingUnavailable: "macOS sees the K70. Quit other RGB apps, then reconnect the keyboard directly."
-        case .multipleDevices: "Connect one K70 RGB MK.2 Low Profile to apply lighting."
+        case .multipleDevices: "Connect one K70 RGB MK.2 to apply lighting."
         case .available: "Ready to send lighting to the keyboard."
         case .applied:
             model.status.appliedSettings == model.draft

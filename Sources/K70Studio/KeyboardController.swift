@@ -130,11 +130,10 @@ final class KeyboardController: @unchecked Sendable {
     private func scan() -> KeyboardStatus? {
         // Enumerate without opening a manager, registering input callbacks, or seizing any service.
         let manager: IOHIDManager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-        let matching: [String: Any] = [
-            kIOHIDVendorIDKey: LightingReports.vendorID,
-            kIOHIDProductIDKey: LightingReports.productID
-        ]
-        IOHIDManagerSetDeviceMatching(manager, matching as CFDictionary)
+        let matches = LightingReports.supportedProductIDs.map { productID in
+            [kIOHIDVendorIDKey: LightingReports.vendorID, kIOHIDProductIDKey: productID]
+        }
+        IOHIDManagerSetDeviceMatchingMultiple(manager, matches as CFArray)
 
         let interfaces = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> ?? []
         let devices = interfaces.compactMap { handle -> Device? in
@@ -164,14 +163,16 @@ final class KeyboardController: @unchecked Sendable {
     }
 
     private func keyboardIsOnUSB() -> Bool {
-        let matching: [String: Any] = [
-            "IOProviderClass": "IOUSBHostDevice",
-            "IOPropertyMatch": ["idVendor": LightingReports.vendorID, "idProduct": LightingReports.productID]
-        ]
-        let service = IOServiceGetMatchingService(kIOMainPortDefault, matching as CFDictionary)
-        guard service != 0 else { return false }
-        IOObjectRelease(service)
-        return true
+        LightingReports.supportedProductIDs.contains { productID in
+            let matching: [String: Any] = [
+                "IOProviderClass": "IOUSBHostDevice",
+                "IOPropertyMatch": ["idVendor": LightingReports.vendorID, "idProduct": productID]
+            ]
+            let service = IOServiceGetMatchingService(kIOMainPortDefault, matching as CFDictionary)
+            guard service != 0 else { return false }
+            IOObjectRelease(service)
+            return true
+        }
     }
 
     private func startAnimation(_ settings: LightingSettings) {

@@ -25,9 +25,9 @@ observation and add a report-level test when it can catch a regression.
 
 ### Hardware check
 
-Use a K70 RGB MK.2 Low Profile RAPIDFIRE with USB ID `1B1C:1B55` and a Mac
-running macOS 14 or later. Record the macOS version, Mac chip, and keyboard
-firmware version if available.
+Use a K70 RGB MK.2 (`1B1C:1B49`) or K70 RGB MK.2 Low Profile RAPIDFIRE
+(`1B1C:1B55`) and a Mac running macOS 14 or later. Record the USB ID,
+macOS version, Mac chip, and keyboard firmware version if available.
 
 1. Open the app with the board disconnected. Check that the preview and
    profiles work and Apply is disabled.

@@ -20,7 +20,7 @@ body:
     id: device
     attributes:
       label: Keyboard label and USB product ID
-      description: The expected SKU is CH-9109018-BR and the expected product ID is 0x1B55. Omit the serial number.
+      description: Supported USB product IDs are 0x1B49 and 0x1B55. Omit the serial number.
   - type: textarea
     id: reproduction
     attributes:

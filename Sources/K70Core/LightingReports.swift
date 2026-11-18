@@ -1,6 +1,6 @@
 public enum LightingReports {
     public static let vendorID = 0x1B1C
-    public static let productID = 0x1B55
+    public static let supportedProductIDs = [0x1B49, 0x1B55]
     public static let usagePage = 0xFFC2
     public static let reportLength = 64
     public static let channelLength = 168

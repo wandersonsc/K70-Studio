@@ -3,8 +3,12 @@
 [![macOS CI][ci-badge]][ci-workflow]
 
 K70 Studio is a native macOS RGB lighting editor for the **Corsair K70 RGB
-MK.2 Low Profile RAPIDFIRE** with the Brazilian ABNT2 layout
-(**CH-9109018-BR**, USB ID **1B1C:1B55**). [Corsair product page][corsair]
+MK.2**. The keyboard preview uses the Brazilian ABNT2 layout.
+
+| Model | USB ID |
+| --- | --- |
+| K70 RGB MK.2 | `1B1C:1B49` |
+| K70 RGB MK.2 Low Profile RAPIDFIRE ([CH-9109018-BR][corsair]) | `1B1C:1B55` |
 
 - Set a solid color or paint individual keys in the keyboard preview.
 - Adjust brightness and choose solid, per-key, breathing, rainbow, or off.
@@ -54,9 +58,10 @@ Its controls cover lighting, brightness, and local profiles.
 
 ## Troubleshooting
 
-If the board is missing, look for `0x1B55` in **System Information → USB**
-and reconnect the keyboard directly. **Lighting interface unavailable**
-means macOS sees the supported keyboard but the app cannot find its RGB
+If the board is missing, look for `0x1B49` or `0x1B55` under
+**System Information → USB** and reconnect the keyboard directly.
+**Lighting interface unavailable** means macOS sees the supported keyboard
+but the app cannot find its RGB
 interface. If you see this status or a USB error, quit
 other RGB utilities and reconnect before retrying. Unplug and reconnect if
 the board stays in software lighting mode after a forced quit.
