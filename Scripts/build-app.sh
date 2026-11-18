@@ -10,10 +10,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 root="$PWD"
 dist="$root/dist"
 
-build_options=(-c release)
-if [[ -n "${K70_BUILD_ARCH:-}" ]]; then
-    build_options+=(--arch "$K70_BUILD_ARCH")
-fi
+build_options=(-c release --arch arm64)
 swift build "${build_options[@]}" --product K70Studio
 bin="$(swift build "${build_options[@]}" --show-bin-path)/K70Studio"
 mkdir -p "$dist"

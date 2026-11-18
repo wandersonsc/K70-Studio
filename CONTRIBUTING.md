@@ -46,7 +46,7 @@ macOS version, Mac chip, and keyboard firmware version if available.
 
 ## Release builds
 
-The GitHub Actions build creates an ad-hoc signed app for each architecture.
+The GitHub Actions build creates an ad-hoc signed app for Apple Silicon.
 For public distribution, set `K70_SIGN_IDENTITY` to a Developer ID
 Application identity before running `Scripts/build-app.sh`. Notarize and
 staple the built app before publishing it. [Apple notarization guide][apple]
