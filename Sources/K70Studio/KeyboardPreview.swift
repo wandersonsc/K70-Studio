@@ -11,22 +11,17 @@ struct KeyboardPreview: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let caseInset: CGFloat = 12
-            let totalInset = 2 * (caseInset + 16)
-            let unit = min(
-                (proxy.size.width - totalInset) / KeyboardLayout.width,
-                (proxy.size.height - totalInset) / KeyboardLayout.height
-            )
-            if unit > 0 {
+            let geometry = KeyboardPreviewGeometry(in: proxy.size)
+            if geometry.unit > 0 {
                 TimelineView(.animation(minimumInterval: 1.0 / 20, paused: !settings.effect.isAnimated || reduceMotion)) {
                     context in
                     let elapsed = reduceMotion ? 0 : context.date.timeIntervalSince(started)
-                    keyboard(unit: unit, elapsed: elapsed)
-                        .frame(width: unit * KeyboardLayout.width, height: unit * KeyboardLayout.height)
-                        .padding(caseInset)
-                        .background { backplate }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    keyboard(geometry: geometry, elapsed: elapsed)
                 }
+                .frame(width: geometry.keyArea.width, height: geometry.keyArea.height)
+                .padding(KeyboardPreviewGeometry.caseInset)
+                .background { backplate }
+                .position(x: geometry.keyArea.midX, y: geometry.keyArea.midY)
             }
         }
         .onChange(of: settings.effect) { _, _ in started = Date() }
@@ -47,8 +42,9 @@ struct KeyboardPreview: View {
             .shadow(color: .black.opacity(0.48), radius: 12, y: 8)
     }
 
-    private func keyboard(unit: CGFloat, elapsed: TimeInterval) -> some View {
-        GeometryReader { _ in
+    private func keyboard(geometry: KeyboardPreviewGeometry, elapsed: TimeInterval) -> some View {
+        let unit = geometry.unit
+        return GeometryReader { _ in
             // Each position is measured from the same board bounds used by the backplate.
             ZStack {
                 Capsule()
@@ -59,21 +55,18 @@ struct KeyboardPreview: View {
                     .accessibilityHidden(true)
 
                 ForEach(KeyboardLayout.brazilian) { key in
-                    keyButton(key, unit: unit, elapsed: elapsed)
-                        .position(
-                            x: (key.x + key.width / 2) * unit,
-                            y: (key.y + key.height / 2) * unit
-                        )
+                    let frame = geometry.keycapFrame(for: key)
+                    keyButton(key, size: frame.size, unit: unit, elapsed: elapsed)
+                        .position(x: frame.midX, y: frame.midY)
                 }
             }
         }
     }
 
-    private func keyButton(_ key: KeyLight, unit: CGFloat, elapsed: TimeInterval) -> some View {
+    private func keyButton(_ key: KeyLight, size: CGSize, unit: CGFloat, elapsed: TimeInterval) -> some View {
         let selected = settings.effect == .perKey && key.id == selectedKey
         let light = settings.color(for: key, elapsed: elapsed).color
         let shape = Keycap(stepped: key.stepped)
-        let gap = min(3, unit * 0.09)
 
         return Button {
             onSelect(key)
@@ -97,13 +90,36 @@ struct KeyboardPreview: View {
                         .minimumScaleFactor(0.68)
                         .padding(.horizontal, 2)
                 }
-                .frame(width: key.width * unit - gap, height: key.height * unit - gap)
+                .frame(width: size.width, height: size.height)
                 .contentShape(shape)
         }
         .buttonStyle(.plain)
         .help(key.name)
         .accessibilityLabel(key.name)
         .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+struct KeyboardPreviewGeometry {
+    static let caseInset: CGFloat = 12
+    let unit: CGFloat
+    let keyArea: CGRect
+
+    init(in size: CGSize) {
+        let margins = 2 * (Self.caseInset + 16)
+        unit = max(0, min(
+            (size.width - margins) / KeyboardLayout.width,
+            (size.height - margins) / KeyboardLayout.height
+        ))
+        let width = unit * KeyboardLayout.width
+        let height = unit * KeyboardLayout.height
+        keyArea = CGRect(x: (size.width - width) / 2, y: (size.height - height) / 2, width: width, height: height)
+    }
+
+    func keycapFrame(for key: KeyLight) -> CGRect {
+        let gap = min(3, unit * 0.09)
+        return CGRect(x: key.x * unit + gap / 2, y: key.y * unit + gap / 2,
+                      width: key.width * unit - gap, height: key.height * unit - gap)
     }
 }
 

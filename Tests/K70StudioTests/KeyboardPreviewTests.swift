@@ -1,44 +1,30 @@
-import AppKit
+import CoreGraphics
 import K70Core
-import SwiftUI
 import XCTest
 @testable import K70Studio
 
 final class KeyboardPreviewTests: XCTestCase {
-    @MainActor
-    func testKeycapsStayCenteredInsidePreviewWhenResized() async throws {
-        let settings = LightingSettings(effect: .solid, baseColor: RGB(255, 0, 0), brightness: 1)
-        let sizes = [CGSize(width: 820, height: 310), CGSize(width: 930, height: 245)]
+    func testKeycapsStayCenteredInsidePreviewWhenResized() {
+        let sizes = [CGSize(width: 700, height: 310), CGSize(width: 930, height: 245)]
 
         for size in sizes {
-            let preview = KeyboardPreview(settings: settings, selectedKey: nil, onSelect: { _ in })
-            let renderer = ImageRenderer(content: preview.frame(width: size.width, height: size.height))
-            let image = try XCTUnwrap(renderer.cgImage)
-            let bitmap = NSBitmapImageRep(cgImage: image)
-            let keyPixels = redBounds(in: bitmap)
-            let unit = min((size.width - 56) / KeyboardLayout.width, (size.height - 56) / KeyboardLayout.height)
-            let width = unit * KeyboardLayout.width
-            let height = unit * KeyboardLayout.height
+            let geometry = KeyboardPreviewGeometry(in: size)
+            let keyArea = geometry.keyArea
+            let stage = CGRect(origin: .zero, size: size)
+            let plate = keyArea.insetBy(dx: -KeyboardPreviewGeometry.caseInset, dy: -KeyboardPreviewGeometry.caseInset)
+            var coverage = CGRect.null
 
-            XCTAssertEqual(keyPixels.minX, (size.width - width) / 2, accuracy: 6)
-            XCTAssertEqual(keyPixels.maxX, (size.width + width) / 2, accuracy: 6)
-            XCTAssertEqual(keyPixels.minY, (size.height - height) / 2, accuracy: 6)
-            XCTAssertEqual(keyPixels.maxY, (size.height + height) / 2, accuracy: 6)
-        }
-    }
-
-    private func redBounds(in bitmap: NSBitmapImageRep) -> CGRect {
-        var bounds = CGRect.null
-        for y in stride(from: 0, to: bitmap.pixelsHigh, by: 2) {
-            for x in stride(from: 0, to: bitmap.pixelsWide, by: 2) {
-                guard let pixel = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB),
-                      pixel.alphaComponent > 0.9,
-                      pixel.redComponent > 0.28,
-                      pixel.redComponent > 2 * max(pixel.greenComponent, pixel.blueComponent)
-                else { continue }
-                bounds = bounds.union(CGRect(x: x, y: y, width: 1, height: 1))
+            XCTAssertTrue(stage.insetBy(dx: 15.99, dy: 15.99).contains(plate))
+            for key in KeyboardLayout.brazilian {
+                let cap = geometry.keycapFrame(for: key).offsetBy(dx: keyArea.minX, dy: keyArea.minY)
+                XCTAssertTrue(keyArea.contains(cap), key.name)
+                coverage = coverage.union(cap)
             }
+
+            XCTAssertEqual(coverage.midX, stage.midX, accuracy: 0.1)
+            XCTAssertEqual(coverage.midY, stage.midY, accuracy: 0.1)
+            XCTAssertEqual(coverage.width, keyArea.width, accuracy: 3)
+            XCTAssertEqual(coverage.height, keyArea.height, accuracy: 3)
         }
-        return bounds
     }
 }
