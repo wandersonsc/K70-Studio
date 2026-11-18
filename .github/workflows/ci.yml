@@ -1,0 +1,53 @@
+name: macOS CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Test lighting and protocol
+        run: swift test
+
+      - name: Build and archive app
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          ./Scripts/build-app.sh
+          lipo -verify_arch "$EXPECTED_ARCH" 'dist/K70 Studio.app/Contents/MacOS/K70Studio'
+          ditto -c -k --keepParent 'dist/K70 Studio.app' "dist/K70-Studio-macOS-$EXPECTED_ARCH.zip"
+
+      - name: Upload app
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: K70-Studio-macOS-${{ matrix.arch }}
+          path: dist/K70-Studio-macOS-${{ matrix.arch }}.zip
+          if-no-files-found: error
+          retention-days: 14

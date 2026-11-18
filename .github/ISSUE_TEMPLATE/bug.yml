@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a problem with K70 Studio.
+title: "[Bug] "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Include the Git commit if you built from source.
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac chip
+      placeholder: macOS 15.7, Apple M2
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Keyboard label and USB product ID
+      description: The expected SKU is CH-9109018-BR and the expected product ID is 0x1B55. Omit the serial number.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What happened
+      description: Include the steps, the expected behavior, and any USB error shown in the app.
+    validations:
+      required: true
