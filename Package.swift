@@ -10,6 +10,7 @@ var targets: [Target] = [
 #if os(macOS)
 products.append(.executable(name: "K70Studio", targets: ["K70Studio"]))
 targets.append(.executableTarget(name: "K70Studio", dependencies: ["K70Core"]))
+targets.append(.testTarget(name: "K70StudioTests", dependencies: ["K70Studio", "K70Core"]))
 #endif
 
 let package = Package(
