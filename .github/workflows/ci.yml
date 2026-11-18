@@ -41,7 +41,7 @@ jobs:
           EXPECTED_ARCH: ${{ matrix.arch }}
         run: |
           ./Scripts/build-app.sh
-          lipo -verify_arch "$EXPECTED_ARCH" 'dist/K70 Studio.app/Contents/MacOS/K70Studio'
+          lipo 'dist/K70 Studio.app/Contents/MacOS/K70Studio' -verify_arch "$EXPECTED_ARCH"
           ditto -c -k --keepParent 'dist/K70 Studio.app' "dist/K70-Studio-macOS-$EXPECTED_ARCH.zip"
 
       - name: Upload app
