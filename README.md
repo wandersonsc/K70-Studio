@@ -18,6 +18,8 @@ MK.2**. The keyboard preview uses the Brazilian ABNT2 layout.
 ## Install
 
 K70 Studio requires **macOS 14 or later** on an Apple Silicon or Intel Mac.
+The GitHub builds use native Liquid Glass controls on macOS 26 and
+translucent SwiftUI materials on earlier supported versions.
 
 ### Download a CI build
 

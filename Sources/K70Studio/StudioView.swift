@@ -7,7 +7,7 @@ struct StudioView: View {
     @State private var savingProfile = false
     @State private var profileName = ""
 
-    private let accent = Color(red: 0.50, green: 0.92, blue: 0.78)
+    private let accent = Color(red: 0.52, green: 0.93, blue: 0.81)
     private let presets: [(String, RGB)] = [
         ("Mint", RGB(123, 225, 195)),
         ("Blue", RGB(88, 158, 255)),
@@ -17,20 +17,20 @@ struct StudioView: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 14) {
             header
-            Divider()
-            HStack(spacing: 0) {
+            HStack(spacing: 14) {
                 controls
-                    .frame(width: 244)
-                    .background(.white.opacity(0.024))
-                Divider()
+                    .frame(width: 220)
+                    .studioPanel()
                 preview
+                    .studioPanel()
             }
-            Divider()
             footer
+                .studioPanel(radius: 19)
         }
-        .background(Color(red: 0.060, green: 0.075, blue: 0.088))
+        .padding(18)
+        .background { StudioBackdrop() }
         .tint(accent)
         .sheet(isPresented: $savingProfile) { saveProfileSheet }
     }
@@ -40,12 +40,12 @@ struct StudioView: View {
             Image(systemName: "keyboard")
                 .font(.system(size: 19, weight: .semibold))
                 .foregroundStyle(accent)
-                .frame(width: 43, height: 43)
-                .background(accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                .frame(width: 46, height: 46)
+                .studioPanel(radius: 14)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 Text("K70 Studio")
-                    .font(.system(size: 23, weight: .semibold))
+                    .font(.system(size: 26, weight: .semibold))
                 Text("K70 RGB MK.2")
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -56,22 +56,24 @@ struct StudioView: View {
                 .foregroundStyle(connectionColor)
                 .padding(.horizontal, 11)
                 .padding(.vertical, 7)
-                .background(connectionColor.opacity(0.10), in: Capsule())
+                .studioGlassCapsule(connectionColor)
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, 5)
+        .padding(.bottom, 1)
     }
 
     private var controls: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 9) {
+            VStack(alignment: .leading, spacing: 17) {
+                VStack(alignment: .leading, spacing: 7) {
                     Text("Lighting effect").font(.headline)
                     ForEach(LightingEffect.allCases, id: \.self) { effect in
                         effectButton(effect)
                     }
                 }
-                Divider()
+                if model.draft.effect != .off {
+                    Divider().overlay(.white.opacity(0.06))
+                }
                 if model.draft.effect.usesBaseColor {
                     VStack(alignment: .leading, spacing: 9) {
                         Text("Base color").font(.headline)
@@ -109,7 +111,7 @@ struct StudioView: View {
                                 .monospacedDigit()
                                 .foregroundStyle(.secondary)
                         }
-                        Slider(value: $model.draft.brightness, in: 0...1, step: 0.01) {
+                        Slider(value: $model.draft.brightness, in: 0...1) {
                             Text("Brightness")
                         }
                         .labelsHidden()
@@ -124,15 +126,16 @@ struct StudioView: View {
                                 .monospacedDigit()
                                 .foregroundStyle(.secondary)
                         }
-                        Slider(value: $model.draft.period, in: 1...12, step: 0.5) {
+                        Slider(value: $model.draft.period, in: 1...12) {
                             Text("Cycle duration")
                         }
                         .labelsHidden()
                     }
                 }
             }
-            .padding(20)
+            .padding(16)
         }
+        .scrollIndicators(.never)
     }
 
     private var preview: some View {
@@ -151,21 +154,20 @@ struct StudioView: View {
             KeyboardPreview(settings: model.draft, selectedKey: model.selectedKey, onSelect: model.select)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background {
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(RadialGradient(
-                            colors: [accent.opacity(0.09), .clear],
-                            center: .center, startRadius: 20, endRadius: 390
-                        ))
-                        .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 18))
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 18).strokeBorder(.white.opacity(0.09))
+                    let stage = RoundedRectangle(cornerRadius: 17)
+                    stage.fill(.black.opacity(0.24))
+                        .overlay {
+                            stage.fill(RadialGradient(colors: [accent.opacity(0.11), .clear],
+                                                      center: .top, startRadius: 12, endRadius: 420))
+                        }
+                        .overlay { stage.strokeBorder(.white.opacity(0.12)) }
                 }
 
             keyInspector
-                .frame(height: 40)
+                .frame(minHeight: 38)
+                .padding(.horizontal, 4)
         }
-        .padding(20)
+        .padding(17)
     }
 
     @ViewBuilder private var keyInspector: some View {
@@ -186,6 +188,7 @@ struct StudioView: View {
                 .id(key.id)
                 .frame(width: 140)
                 Button("Use Base Color") { model.draft.overrides[key.id] = nil }
+                    .studioAction(accent)
                     .disabled(model.draft.overrides[key.id] == nil)
             }
         } else {
@@ -214,8 +217,19 @@ struct StudioView: View {
                 }
             }
         } label: {
-            Label("Profiles", systemImage: "square.stack")
+            HStack(spacing: 7) {
+                Label("Profiles", systemImage: "square.stack")
+                Image(systemName: "chevron.down")
+                    .font(.caption2.weight(.semibold))
+                    .accessibilityHidden(true)
+            }
+            .font(.callout.weight(.medium))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .studioGlassCapsule(accent, interactive: true)
         }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
         .fixedSize()
     }
 
@@ -254,17 +268,22 @@ struct StudioView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
             Spacer()
-            Button("Restore Onboard Lighting", action: model.restore)
-                .disabled(!model.canRestore)
-                .fixedSize()
-            Button("Apply to Keyboard", action: model.apply)
-                .buttonStyle(.borderedProminent)
-                .disabled(!model.canApply)
-                .fixedSize()
-                .help("Send this preview to the connected keyboard")
+            Button(action: model.restore) {
+                Label("Restore Onboard Lighting", systemImage: "arrow.uturn.backward")
+            }
+            .studioAction(accent)
+            .disabled(!model.canRestore)
+            .fixedSize()
+            Button(action: model.apply) {
+                Label("Apply to Keyboard", systemImage: "arrow.right.circle.fill")
+            }
+            .studioAction(accent, prominent: true)
+            .disabled(!model.canApply)
+            .fixedSize()
+            .help("Send this preview to the connected keyboard")
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 
     private func effectButton(_ effect: LightingEffect) -> some View {
@@ -287,8 +306,13 @@ struct StudioView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
             .foregroundStyle(selected ? accent : .primary)
-            .background(selected ? accent.opacity(0.10) : .clear, in: RoundedRectangle(cornerRadius: 7))
-            .contentShape(Rectangle())
+            .background {
+                if selected {
+                    Capsule().fill(accent.opacity(0.12))
+                        .overlay { Capsule().strokeBorder(accent.opacity(0.24)) }
+                }
+            }
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
