@@ -5,7 +5,19 @@ public enum LightingReports {
     public static let reportLength = 64
     public static let channelLength = 168
 
-    public static let begin = report(header: [0x07, 0x05, 0x02, 0x00, 0x03])
+    public static let activate: [[UInt8]] = {
+        // The MK.2 commits the volatile key routing when switching to software lighting.
+        // Request both HID and Corsair reports so macOS retains its native keyboard path.
+        let keySlots = 152
+        let routing = stride(from: 0, to: keySlots, by: 30).map { start in
+            let slots = start..<min(start + 30, keySlots)
+            let pairs = slots.flatMap { [UInt8($0), UInt8(0xC0)] }
+            return report(header: [0x07, 0x40, UInt8(slots.count), 0x00], payload: pairs[...])
+        }
+        let softwareMode = report(header: [0x07, 0x04, 0x02])
+        let commit = report(header: [0x07, 0x05, 0x02, 0x00, 0x03])
+        return [softwareMode] + routing + [commit]
+    }()
     public static let restore = report(header: [0x07, 0x04, 0x01])
 
     public static func encode(frame: [Int: RGB]) -> [[UInt8]] {

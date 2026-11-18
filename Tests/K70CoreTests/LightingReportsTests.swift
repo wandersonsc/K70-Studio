@@ -24,13 +24,23 @@ final class LightingReportsTests: XCTestCase {
     }
 
     func testModeReportsArePaddedAndDoNotAddressOnboardStorage() {
-        let begin = LightingReports.begin
+        let activate = LightingReports.activate
         let restore = LightingReports.restore
-        XCTAssertEqual(begin.count, 64)
+        XCTAssertEqual(activate.count, 8)
+        guard activate.count == 8 else { return }
+        XCTAssertTrue(activate.allSatisfy { $0.count == 64 })
+        XCTAssertEqual(Array(activate[0].prefix(3)), [0x07, 0x04, 0x02])
+        XCTAssertEqual(Array(activate[7].prefix(5)), [0x07, 0x05, 0x02, 0x00, 0x03])
+        XCTAssertTrue(activate[7].dropFirst(5).allSatisfy { $0 == 0 })
+        for (index, packet) in activate[1...6].enumerated() {
+            let count = index == 5 ? 2 : 30
+            XCTAssertEqual(Array(packet.prefix(4)), [0x07, 0x40, UInt8(count), 0])
+            let expected = (0..<count).flatMap { [UInt8(index * 30 + $0), UInt8(0xC0)] }
+            XCTAssertEqual(Array(packet.dropFirst(4).prefix(2 * count)), expected)
+            XCTAssertTrue(packet.dropFirst(4 + 2 * count).allSatisfy { $0 == 0 })
+        }
         XCTAssertEqual(restore.count, 64)
-        XCTAssertEqual(Array(begin.prefix(5)), [0x07, 0x05, 0x02, 0x00, 0x03])
         XCTAssertEqual(Array(restore.prefix(3)), [0x07, 0x04, 0x01])
-        XCTAssertTrue(begin.dropFirst(5).allSatisfy { $0 == 0 })
         XCTAssertTrue(restore.dropFirst(3).allSatisfy { $0 == 0 })
     }
 }

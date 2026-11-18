@@ -88,7 +88,10 @@ final class KeyboardController: @unchecked Sendable {
                     opened = device.handle
                 }
                 guard let opened else { return }
-                try write(LightingReports.begin, to: opened)
+                for (index, report) in LightingReports.activate.enumerated() {
+                    try write(report, to: opened)
+                    if index == 0 { Thread.sleep(forTimeInterval: 0.03) }
+                }
                 Thread.sleep(forTimeInterval: 0.03)
                 try sendFrame(settings, elapsed: 0, to: opened)
                 publish(.applied(settings), force: true)
@@ -204,6 +207,8 @@ final class KeyboardController: @unchecked Sendable {
     }
 
     private func write(_ report: [UInt8], to handle: IOHIDDevice) throws {
+        // Pace writes so the firmware can consume each report before receiving the next one.
+        Thread.sleep(forTimeInterval: 0.003)
         // The vendor output report is unnumbered. Its 64 bytes start with the command byte.
         let result = IOHIDDeviceSetReport(handle, kIOHIDReportTypeOutput, 0, report, report.count)
         guard result == kIOReturnSuccess else {
