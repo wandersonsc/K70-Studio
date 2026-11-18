@@ -17,14 +17,14 @@ MK.2**. The keyboard preview uses the Brazilian ABNT2 layout.
 
 ## Install
 
-K70 Studio requires **macOS 14 or later** on an Apple Silicon or Intel Mac.
+K70 Studio requires an **Apple Silicon Mac with macOS 14 or later**.
 The GitHub builds use native Liquid Glass controls on macOS 26 and
 translucent SwiftUI materials on earlier supported versions.
 
 ### Download a CI build
 
-Open a successful **macOS CI** run and select the artifact for your Mac from
-**Artifacts**. Choose `arm64` for Apple Silicon or `x86_64` for Intel.
+Open a successful **macOS CI** run and select **K70-Studio-macOS-arm64**
+from **Artifacts**.
 Extract the download and the app ZIP inside it. CI builds are signed for
 development use. [macOS CI runs][ci-workflow]
 
@@ -71,9 +71,9 @@ the board stays in software lighting mode after a forced quit.
 ## Development
 
 Open `Package.swift` in Xcode. Run `swift test` to check the key layout,
-color and effect behavior, profile serialization, and USB report bytes.
-The core tests also run on Linux. GitHub Actions runs the tests on Intel
-macOS and builds the app for both Mac architectures.
+color and effect behavior, profile serialization, USB report bytes, and
+preview geometry. The core tests also run on Linux. GitHub Actions runs
+the macOS tests and builds the Apple Silicon app.
 [Contribution guide](CONTRIBUTING.md)
 
 `K70Core` renders lighting and encodes Corsair NXP reports. The app opens the

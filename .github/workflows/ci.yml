@@ -15,38 +15,30 @@ concurrency:
 
 jobs:
   build:
-    name: Build (${{ matrix.arch }})
-    runs-on: macos-15-intel
+    name: Build and test Apple Silicon
+    runs-on: macos-26
     timeout-minutes: 15
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [arm64, x86_64]
-
     steps:
       - name: Check out source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: Test lighting and protocol
-        if: matrix.arch == 'x86_64'
+      - name: Test lighting, protocol, and preview layout
         run: swift test
 
       - name: Build and archive app
-        env:
-          K70_BUILD_ARCH: ${{ matrix.arch }}
         run: |
           ./Scripts/build-app.sh
-          lipo 'dist/K70 Studio.app/Contents/MacOS/K70Studio' -verify_arch "$K70_BUILD_ARCH"
-          ditto -c -k --keepParent 'dist/K70 Studio.app' "dist/K70-Studio-macOS-$K70_BUILD_ARCH.zip"
+          test "$(lipo -archs 'dist/K70 Studio.app/Contents/MacOS/K70Studio')" = arm64
+          ditto -c -k --keepParent 'dist/K70 Studio.app' dist/K70-Studio-macOS-arm64.zip
 
       - name: Upload app
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: K70-Studio-macOS-${{ matrix.arch }}
-          path: dist/K70-Studio-macOS-${{ matrix.arch }}.zip
+          name: K70-Studio-macOS-arm64
+          path: dist/K70-Studio-macOS-arm64.zip
           if-no-files-found: error
           retention-days: 14
