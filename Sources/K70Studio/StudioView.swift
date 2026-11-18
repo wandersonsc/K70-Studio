@@ -299,6 +299,7 @@ struct StudioView: View {
         case .searching: "Checking USB"
         case .preview: "Preview only"
         case .disconnected: "Keyboard disconnected"
+        case .lightingUnavailable: "Lighting interface unavailable"
         case .multipleDevices: "Multiple keyboards"
         case .available, .applied: "Keyboard connected"
         case .failed: "USB error"
@@ -308,7 +309,7 @@ struct StudioView: View {
     private var connectionSymbol: String {
         switch model.status {
         case .available, .applied: "checkmark.circle.fill"
-        case .failed, .multipleDevices: "exclamationmark.circle"
+        case .failed, .multipleDevices, .lightingUnavailable: "exclamationmark.circle"
         default: "circle.dashed"
         }
     }
@@ -316,7 +317,7 @@ struct StudioView: View {
     private var connectionColor: Color {
         switch model.status {
         case .available, .applied: accent
-        case .failed, .multipleDevices: .orange
+        case .failed, .multipleDevices, .lightingUnavailable: .orange
         default: .secondary
         }
     }
@@ -326,6 +327,7 @@ struct StudioView: View {
         case .searching: "Looking for the keyboard’s USB lighting interface."
         case .preview: "You can edit and save lighting in preview mode."
         case .disconnected: "Plug in the keyboard’s USB connector to apply lighting."
+        case .lightingUnavailable: "macOS sees the K70. Quit other RGB apps, then reconnect the keyboard directly."
         case .multipleDevices: "Connect one K70 RGB MK.2 Low Profile to apply lighting."
         case .available: "Ready to send lighting to the keyboard."
         case .applied:

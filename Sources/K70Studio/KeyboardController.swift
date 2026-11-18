@@ -7,6 +7,7 @@ enum KeyboardStatus: Equatable, Sendable {
     case searching
     case preview
     case disconnected
+    case lightingUnavailable
     case multipleDevices
     case available
     case applied(LightingSettings)
@@ -131,18 +132,20 @@ final class KeyboardController: @unchecked Sendable {
         let manager: IOHIDManager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         let matching: [String: Any] = [
             kIOHIDVendorIDKey: LightingReports.vendorID,
-            kIOHIDProductIDKey: LightingReports.productID,
-            kIOHIDTransportKey: "USB",
-            kIOHIDPrimaryUsagePageKey: LightingReports.usagePage
+            kIOHIDProductIDKey: LightingReports.productID
         ]
         IOHIDManagerSetDeviceMatching(manager, matching as CFDictionary)
 
         let interfaces = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> ?? []
         let devices = interfaces.compactMap { handle -> Device? in
             let page = IOHIDDeviceGetProperty(handle, kIOHIDPrimaryUsagePageKey as CFString) as? NSNumber
+            let pairs = IOHIDDeviceGetProperty(handle, kIOHIDDeviceUsagePairsKey as CFString) as? [[String: NSNumber]]
             let size = IOHIDDeviceGetProperty(handle, kIOHIDMaxOutputReportSizeKey as CFString) as? NSNumber
-            guard page?.intValue == LightingReports.usagePage,
-                  let size, size.intValue >= LightingReports.reportLength else { return nil }
+            let hasLightingPage = page?.intValue == LightingReports.usagePage || pairs?.contains {
+                $0[kIOHIDDeviceUsagePageKey]?.intValue == LightingReports.usagePage
+            } == true
+            guard hasLightingPage, (size?.intValue ?? LightingReports.reportLength) >= LightingReports.reportLength
+            else { return nil }
             var id: UInt64 = 0
             guard IORegistryEntryGetRegistryEntryID(IOHIDDeviceGetService(handle), &id) == kIOReturnSuccess
             else { return nil }
@@ -156,7 +159,19 @@ final class KeyboardController: @unchecked Sendable {
         try? endSession(restore: previousIsPresent)
         device = next
         if devices.count > 1 { return .multipleDevices }
-        return next == nil ? .disconnected : .available
+        if next != nil { return .available }
+        return !interfaces.isEmpty || keyboardIsOnUSB() ? .lightingUnavailable : .disconnected
+    }
+
+    private func keyboardIsOnUSB() -> Bool {
+        let matching: [String: Any] = [
+            "IOProviderClass": "IOUSBHostDevice",
+            "IOPropertyMatch": ["idVendor": LightingReports.vendorID, "idProduct": LightingReports.productID]
+        ]
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, matching as CFDictionary)
+        guard service != 0 else { return false }
+        IOObjectRelease(service)
+        return true
     }
 
     private func startAnimation(_ settings: LightingSettings) {

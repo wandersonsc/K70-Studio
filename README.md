@@ -55,7 +55,9 @@ Its controls cover lighting, brightness, and local profiles.
 ## Troubleshooting
 
 If the board is missing, look for `0x1B55` in **System Information → USB**
-and reconnect the keyboard directly. If the app reports a USB error, quit
+and reconnect the keyboard directly. **Lighting interface unavailable**
+means macOS sees the supported keyboard but the app cannot find its RGB
+interface. If you see this status or a USB error, quit
 other RGB utilities and reconnect before retrying. Unplug and reconnect if
 the board stays in software lighting mode after a forced quit.
 
